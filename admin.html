@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel - AI Spoken English Teacher</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root{
+    --bg:#040404; --surface:#0f0f0f; --surface-2:#181818;
+    --gold:#e6b84c; --gold-dim:#8a6d24; --gold-soft:rgba(230,184,76,0.12);
+    --text:#f4ecd8; --muted:#8a8272; --danger:#ff5d73; --ok:#5ddc8a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
+  body{background:var(--bg);color:var(--text);min-height:100vh;padding:16px;}
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px;margin-bottom:16px;
+    background:linear-gradient(120deg,#0c0c0c,#161616);
+    border:1px solid var(--gold-soft);border-radius:12px;
+  }
+  header h1{font-family:'Poppins',sans-serif;font-size:18px;color:var(--gold);}
+  header .sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  #authArea{display:flex;align-items:center;gap:10px;}
+  #authArea img{width:32px;height:32px;border-radius:50%;border:1px solid var(--gold-dim);}
+  .btn{
+    padding:9px 14px;border-radius:8px;border:1px solid var(--gold-dim);
+    background:transparent;color:var(--gold);font-weight:600;font-size:13px;cursor:pointer;
+  }
+  .btn:hover{background:var(--gold-soft);}
+  .btn.danger{border-color:var(--danger);color:var(--danger);}
+  .btn.small{padding:6px 10px;font-size:12px;}
+
+  #gate{
+    text-align:center;padding:60px 20px;color:var(--muted);
+  }
+  #gate h2{color:var(--gold);font-family:'Poppins',sans-serif;margin-bottom:10px;font-size:18px;}
+
+  .table-wrap{overflow-x:auto;border:1px solid var(--gold-soft);border-radius:12px;}
+  table{width:100%;border-collapse:collapse;min-width:900px;}
+  th, td{padding:12px 14px;text-align:left;font-size:13.5px;border-bottom:1px solid rgba(230,184,76,0.08);}
+  th{background:var(--surface);color:var(--gold);font-weight:600;position:sticky;top:0;}
+  tr:hover td{background:rgba(255,255,255,0.02);}
+  .badge{padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:600;}
+  .badge.free{background:rgba(230,184,76,0.15);color:var(--gold);}
+  .badge.premium{background:rgba(93,220,138,0.15);color:var(--ok);}
+  .badge.banned{background:rgba(255,93,115,0.15);color:var(--danger);}
+  .badge.active{background:rgba(93,220,138,0.15);color:var(--ok);}
+  input.credit-input{
+    width:64px;background:var(--surface-2);border:1px solid var(--gold-soft);
+    color:var(--text);border-radius:6px;padding:6px 8px;font-size:13px;
+  }
+  select.plan-select{
+    background:var(--surface-2);border:1px solid var(--gold-soft);color:var(--text);
+    border-radius:6px;padding:6px 8px;font-size:13px;
+  }
+  .row-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  #summary{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+  .stat-card{
+    background:var(--surface);border:1px solid var(--gold-soft);border-radius:10px;
+    padding:14px 18px;min-width:120px;
+  }
+  .stat-card .num{font-size:22px;font-weight:700;color:var(--gold);font-family:'Poppins',sans-serif;}
+  .stat-card .label{font-size:12px;color:var(--muted);margin-top:2px;}
+  #loadingMsg{color:var(--muted);padding:20px;text-align:center;}
+</style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <h1>🛠 Admin Panel</h1>
+      <div class="sub">AI Spoken English Teacher</div>
+    </div>
+    <div id="authArea">
+      <button class="btn" id="signInBtn" onclick="handleAuthClick()">Google দিয়ে সাইন-ইন</button>
+    </div>
+  </header>
+
+  <div id="gate">
+    <h2>অ্যাডমিন লগইন প্রয়োজন</h2>
+    <div>শুধুমাত্র অনুমোদিত অ্যাডমিন ইমেইল দিয়ে সাইন-ইন করলে ডেটা দেখা যাবে।</div>
+  </div>
+
+  <div id="dashboard" style="display:none;">
+    <div id="summary"></div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;">
+      <button class="btn" onclick="loadUsers()">🔄 রিফ্রেশ</button>
+    </div>
+    <div id="loadingMsg" style="display:none;">লোড হচ্ছে...</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ইউজার</th>
+            <th>ইমেইল</th>
+            <th>প্রথম ব্যবহার</th>
+            <th>শেষ সক্রিয়</th>
+            <th>মোট মেসেজ</th>
+            <th>প্ল্যান</th>
+            <th>ক্রেডিট</th>
+            <th>স্ট্যাটাস</th>
+            <th>অ্যাকশন</th>
+          </tr>
+        </thead>
+        <tbody id="usersTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+<script>
+  const BACKEND_URL = "https://ai-teacher-backend-otc2.onrender.com";
+  const GOOGLE_CLIENT_ID = "691037137044-04nqdsafm7k46pvvaftrcsadhe2qbium.apps.googleusercontent.com";
+
+  let accessToken = null;
+  let tokenClient = null;
+  let usersData = [];
+
+  window.onload = () => {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: "openid email profile",
+      callback: handleTokenResponse
+    });
+  };
+
+  function handleAuthClick(){
+    tokenClient.requestAccessToken({ prompt: 'consent' });
+  }
+
+  async function handleTokenResponse(resp){
+    if (resp.error) { alert("সাইন-ইন ব্যর্থ হয়েছে।"); return; }
+    accessToken = resp.access_token;
+    const profileRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    const profile = await profileRes.json();
+    document.getElementById('authArea').innerHTML = `
+      <img src="${profile.picture || ''}" alt="">
+      <span style="font-size:13px;">${profile.name || profile.email}</span>
+      <button class="btn small" onclick="location.reload()">সাইন-আউট</button>
+    `;
+    loadUsers();
+  }
+
+  function renderSummary(users){
+    const total = users.length;
+    const banned = users.filter(u => u.banned).length;
+    const premium = users.filter(u => u.plan === 'premium').length;
+    const totalMsgs = users.reduce((a,u) => a + (u.message_count || 0), 0);
+    document.getElementById('summary').innerHTML = `
+      <div class="stat-card"><div class="num">${total}</div><div class="label">মোট ইউজার</div></div>
+      <div class="stat-card"><div class="num">${premium}</div><div class="label">প্রিমিয়াম</div></div>
+      <div class="stat-card"><div class="num">${banned}</div><div class="label">ব্যানড</div></div>
+      <div class="stat-card"><div class="num">${totalMsgs}</div><div class="label">মোট মেসেজ</div></div>
+    `;
+  }
+
+  function fmtDate(iso){
+    if (!iso) return '-';
+    try { return new Date(iso).toLocaleString('bn-BD', { dateStyle:'medium', timeStyle:'short' }); }
+    catch(e){ return iso; }
+  }
+
+  function renderTable(users){
+    const tbody = document.getElementById('usersTbody');
+    tbody.innerHTML = '';
+    users.forEach(u => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${u.name ? escapeHtml(u.name) : '-'}</td>
+        <td>${escapeHtml(u.email)}</td>
+        <td>${fmtDate(u.first_seen)}</td>
+        <td>${fmtDate(u.last_seen)}</td>
+        <td>${u.message_count || 0}</td>
+        <td>
+          <select class="plan-select" data-email="${u.email}">
+            <option value="free" ${u.plan==='free'?'selected':''}>Free</option>
+            <option value="premium" ${u.plan==='premium'?'selected':''}>Premium</option>
+          </select>
+        </td>
+        <td><input type="number" class="credit-input" data-email="${u.email}" value="${u.credits ?? 0}"></td>
+        <td><span class="badge ${u.banned ? 'banned' : 'active'}">${u.banned ? 'ব্যানড' : 'সক্রিয়'}</span></td>
+        <td class="row-actions">
+          <button class="btn small" onclick="saveBilling('${u.email}')">সেভ</button>
+          <button class="btn small ${u.banned ? '' : 'danger'}" onclick="toggleBan('${u.email}', ${!u.banned})">
+            ${u.banned ? 'আনব্যান' : 'ব্যান'}
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  async function loadUsers(){
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('loadingMsg').style.display = 'block';
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/users`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      if (res.status === 403) {
+        document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('gate').style.display = 'block';
+        document.getElementById('gate').innerHTML = `
+          <h2>অ্যাক্সেস নেই</h2>
+          <div>এই Google অ্যাকাউন্টটি অ্যাডমিন হিসেবে অনুমোদিত নয়।<br>Render-এ ADMIN_EMAILS এনভায়রনমেন্ট ভ্যারিয়েবলে এই ইমেইলটি যোগ করুন।</div>
+        `;
+        return;
+      }
+      const data = await res.json();
+      usersData = data.users || [];
+      renderSummary(usersData);
+      renderTable(usersData);
+    } catch (e) {
+      console.error(e);
+      alert("ইউজার লিস্ট লোড করা যায়নি।");
+    } finally {
+      document.getElementById('loadingMsg').style.display = 'none';
+    }
+  }
+
+  async function toggleBan(email, banned){
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/ban`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({ email, banned })
+      });
+      if (!res.ok) throw new Error('failed');
+      loadUsers();
+    } catch (e) {
+      alert("ব্যান/আনব্যান করা যায়নি।");
+    }
+  }
+
+  async function saveBilling(email){
+    const planEl = document.querySelector(`.plan-select[data-email="${email}"]`);
+    const creditEl = document.querySelector(`.credit-input[data-email="${email}"]`);
+    const plan = planEl.value;
+    const credits = parseInt(creditEl.value, 10) || 0;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/billing`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({ email, plan, credits })
+      });
+      if (!res.ok) throw new Error('failed');
+      alert("সেভ হয়েছে।");
+      loadUsers();
+    } catch (e) {
+      alert("সেভ করা যায়নি।");
+    }
+  }
+</script>
+</body>
+</html>
