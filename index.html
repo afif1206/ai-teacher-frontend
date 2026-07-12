@@ -1,375 +1,112 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Spoken English Teacher</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#0b1220;
-    --surface:#121b2e;
-    --surface-2:#182338;
-    --gold:#e8a33d;
-    --teal:#2dd4bf;
-    --text:#f1f5f9;
-    --muted:#8b98ac;
-    --danger:#ff5d73;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{
-    font-family:'Inter',sans-serif;
-    background:var(--bg);
-    color:var(--text);
-    height:100vh;
-    display:flex;
-    flex-direction:column;
-    overflow:hidden;
-  }
-  header{
-    background:linear-gradient(120deg,#0f1b33,#1a2a4a);
-    padding:18px 20px;
-    text-align:center;
-    font-family:'Poppins',sans-serif;
-    font-weight:700;
-    font-size:19px;
-    letter-spacing:0.3px;
-    border-bottom:1px solid rgba(232,163,61,0.15);
-    position:relative;
-    z-index:10;
-  }
-  header .flag{margin-right:6px;}
-  header .sub{
-    display:block;
-    font-family:'Inter',sans-serif;
-    font-weight:400;
-    font-size:12px;
-    color:var(--muted);
-    margin-top:4px;
-    letter-spacing:0.2px;
-  }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium AI English Teacher</title>
+    <style>
+        :root {
+            --gold: #D4AF37;
+            --black: #000000;
+            --dark-gray: #1a1a1a;
+            --text-color: #ffffff;
+        }
 
-  .chat-container{
-    flex:1;
-    overflow-y:auto;
-    padding:20px 16px;
-    display:flex;
-    flex-direction:column;
-    gap:14px;
-    background:
-      radial-gradient(circle at 50% 0%, rgba(45,212,191,0.05), transparent 60%),
-      var(--bg);
-  }
-  .message{
-    max-width:82%;
-    padding:13px 17px;
-    border-radius:18px;
-    font-size:15.5px;
-    line-height:1.55;
-    box-shadow:0 4px 14px rgba(0,0,0,0.25);
-    animation:rise .25s ease;
-  }
-  @keyframes rise{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
-  .user{
-    background:linear-gradient(135deg,#1a3a6b,#12294f);
-    color:#eaf1ff;
-    align-self:flex-end;
-    border-bottom-right-radius:4px;
-  }
-  .ai{
-    background:var(--surface-2);
-    color:#e7ecf5;
-    align-self:flex-start;
-    border-bottom-left-radius:4px;
-    border:1px solid rgba(232,163,61,0.12);
-  }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--black); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; }
+        
+        /* Header */
+        header { background: linear-gradient(135deg, #000, #332700); color: var(--gold); padding: 20px; text-align: center; border-bottom: 2px solid var(--gold); font-weight: bold; font-size: 22px; }
 
-  .controls{
-    background:var(--surface);
-    padding:16px 20px 22px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:12px;
-    border-top:1px solid rgba(255,255,255,0.06);
-    box-shadow:0 -8px 30px rgba(0,0,0,0.35);
-    position:relative;
-    z-index:10;
-  }
+        /* Chat Area */
+        .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .message { max-width: 80%; padding: 12px 18px; border-radius: 15px; font-size: 16px; }
+        .user { background-color: var(--gold); color: #000; align-self: flex-end; border-bottom-right-radius: 0; }
+        .ai { background-color: var(--dark-gray); color: var(--text-color); align-self: flex-start; border: 1px solid var(--gold); border-bottom-left-radius: 0; }
 
-  .text-row{
-    width:100%;
-    display:flex;
-    gap:8px;
-    align-items:center;
-  }
-  .text-input{
-    flex:1;
-    background:var(--surface-2);
-    border:1px solid rgba(255,255,255,0.08);
-    color:var(--text);
-    font-family:'Inter',sans-serif;
-    font-size:15px;
-    padding:12px 16px;
-    border-radius:22px;
-    outline:none;
-    transition:border-color .2s ease;
-  }
-  .text-input:focus{border-color:rgba(232,163,61,0.5);}
-  .text-input::placeholder{color:var(--muted);}
-  .send-btn{
-    width:44px;height:44px;
-    border-radius:50%;
-    border:none;
-    background:linear-gradient(135deg,var(--teal),#1a9c8c);
-    color:#0b1220;
-    font-size:18px;
-    cursor:pointer;
-    display:flex;align-items:center;justify-content:center;
-    flex-shrink:0;
-    box-shadow:0 4px 12px rgba(45,212,191,0.3);
-    transition:transform .15s ease;
-  }
-  .send-btn:active{transform:scale(0.9);}
-  .send-btn:disabled{opacity:0.4;cursor:default;}
-
-  .divider-row{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    width:100%;
-    color:var(--muted);
-    font-size:12px;
-  }
-  .divider-row::before,.divider-row::after{
-    content:"";
-    flex:1;
-    height:1px;
-    background:rgba(255,255,255,0.08);
-  }
-
-  .record-btn-wrap{
-    position:relative;
-    width:100px;
-    height:100px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-  .ring{
-    position:absolute;
-    inset:0;
-    border-radius:50%;
-    border:2px solid rgba(232,163,61,0.35);
-    opacity:0;
-    transform:scale(0.85);
-  }
-  .record-btn.recording ~ .ring,
-  .recording + .ring{opacity:1;}
-  .ring1{animation:ripple 1.8s ease-out infinite;}
-  .ring2{animation:ripple 1.8s ease-out infinite;animation-delay:.6s;}
-  @keyframes ripple{
-    0%{opacity:.55;transform:scale(0.8);}
-    100%{opacity:0;transform:scale(1.5);}
-  }
-
-  .record-btn{
-    width:78px;height:78px;
-    border-radius:50%;
-    border:none;
-    cursor:pointer;
-    font-size:30px;
-    display:flex;align-items:center;justify-content:center;
-    background:linear-gradient(135deg,var(--gold),#c97f22);
-    box-shadow:0 8px 22px rgba(232,163,61,0.35);
-    transition:transform .2s ease, box-shadow .2s ease, background .3s ease;
-    position:relative;
-    z-index:2;
-  }
-  .record-btn:active{transform:scale(0.93);}
-  .record-btn.recording{
-    background:linear-gradient(135deg,var(--danger),#c73a52);
-    box-shadow:0 8px 26px rgba(255,93,115,0.4);
-  }
-
-  .status{
-    font-size:13.5px;
-    color:var(--muted);
-    font-weight:500;
-    text-align:center;
-    min-height:18px;
-  }
-
-  ::-webkit-scrollbar{width:6px;}
-  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:10px;}
-
-  @media (prefers-reduced-motion: reduce){
-    .ring1,.ring2,.message{animation:none;}
-  }
-</style>
+        /* Controls */
+        .controls { padding: 20px; display: flex; flex-direction: column; align-items: center; background: #050505; border-top: 1px solid #333; }
+        .record-btn { width: 70px; height: 70px; border-radius: 50%; background: var(--gold); border: none; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .record-btn.recording { animation: blink 1s infinite; background: #ff0000; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+        .status { margin-top: 10px; color: var(--gold); font-size: 14px; }
+    </style>
 </head>
 <body>
 
-  <header>
-    <span class="flag">🇧🇩</span>AI Spoken English Teacher
-    <span class="sub">কথা বলে শিখুন ইংরেজি</span>
-  </header>
+    <header>AI Spoken English Teacher</header>
 
-  <div class="chat-container" id="chatContainer">
-    <div class="message ai">হ্যালো! আমি তোমার স্পোকেন ইংলিশ টিচার। নিচের মাইক বাটনে ক্লিক করে আমার সাথে ইংরেজিতে কথা বলা শুরু করো। ভুল হলে আমি বাংলায় বুঝিয়ে দেব! 😊</div>
-  </div>
-
-  <div class="controls">
-    <div class="text-row">
-      <input type="text" class="text-input" id="textInput" placeholder="এখানে ইংরেজিতে লিখুন..." autocomplete="off">
-      <button class="send-btn" id="sendBtn">➤</button>
+    <div class="chat-container" id="chatContainer">
+        <div class="message ai">হ্যালো! আমি তোমার পার্সোনাল ইংলিশ টিচার। কথা বলতে নিচে গোল্ডেন বাটনে ক্লিক করো।</div>
     </div>
-    <div class="divider-row">অথবা</div>
-    <div class="record-btn-wrap">
-      <div class="ring ring1"></div>
-      <div class="ring ring2"></div>
-      <button class="record-btn" id="recordBtn">🎤</button>
+
+    <div class="controls">
+        <button class="record-btn" id="recordBtn">🎤</button>
+        <div class="status" id="statusText">শুরু করতে ক্লিক করুন</div>
     </div>
-    <div class="status" id="statusText">লিখুন অথবা মাইকে বলুন...</div>
-  </div>
 
-<script>
-  const BACKEND_URL = "https://ai-teacher-backend-otc2.onrender.com";
+    <script>
+        const BACKEND_URL = "https://ai-teacher-backend-otc2.onrender.com";
+        const recordBtn = document.getElementById('recordBtn');
+        const statusText = document.getElementById('statusText');
+        const chatContainer = document.getElementById('chatContainer');
 
-  const recordBtn = document.getElementById('recordBtn');
-  const statusText = document.getElementById('statusText');
-  const chatContainer = document.getElementById('chatContainer');
-  const textInput = document.getElementById('textInput');
-  const sendBtn = document.getElementById('sendBtn');
+        let mediaRecorder;
+        let chunks = [];
+        let isRecording = false;
 
-  let mediaRecorder;
-  let chunks = [];
-  let isRecording = false;
+        recordBtn.addEventListener('click', async () => {
+            if (!isRecording) {
+                // START RECORDING
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                chunks = [];
+                mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'audio/wav' });
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onloadend = () => sendAudio(reader.result.split(',')[1]);
+                };
+                mediaRecorder.start();
+                isRecording = true;
+                recordBtn.classList.add('recording');
+                statusText.innerText = "শুনছি...";
+            } else {
+                // STOP RECORDING
+                mediaRecorder.stop();
+                isRecording = false;
+                recordBtn.classList.remove('recording');
+                statusText.innerText = "প্রসেস হচ্ছে...";
+            }
+        });
 
-  sendBtn.addEventListener('click', sendTypedMessage);
-  textInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') sendTypedMessage();
-  });
+        async function sendAudio(base64Audio) {
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ audio_base64: base64Audio })
+                });
+                const data = await res.json();
+                if(data.success) {
+                    appendMessage(data.user_said, 'user');
+                    appendMessage(data.ai_response, 'ai');
+                    statusText.innerText = "আবার বলুন...";
+                }
+            } catch(e) {
+                alert("সার্ভার এরর!");
+            }
+        }
 
-  async function sendTypedMessage() {
-    const text = textInput.value.trim();
-    if (!text) return;
-    appendMessage(text, 'user');
-    textInput.value = "";
-    sendBtn.disabled = true;
-    statusText.textContent = "AI শিক্ষক চিন্তা করছেন...";
-
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: text })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        appendMessage(data.ai_response, 'ai');
-        speakText(data.ai_response);
-      } else {
-        alert("সার্ভার থেকে সঠিক রেসপন্স আসেনি।");
-      }
-    } catch (error) {
-      console.error(error);
-      alert("সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।");
-    } finally {
-      sendBtn.disabled = false;
-      statusText.textContent = "লিখুন অথবা মাইকে বলুন...";
-    }
-  }
-
-  recordBtn.addEventListener('click', async () => {
-    if (!isRecording) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        chunks = [];
-
-        mediaRecorder.ondataavailable = e => chunks.push(e.data);
-
-        mediaRecorder.onstop = async () => {
-          const blob = new Blob(chunks, { type: 'audio/wav' });
-          const reader = new FileReader();
-          reader.readAsDataURL(blob);
-          reader.onloadend = async () => {
-            const base64Audio = reader.result.split(',')[1];
-            await sendAudioToAI(base64Audio);
-          };
-          stream.getTracks().forEach(track => track.stop());
-        };
-
-        mediaRecorder.start();
-        isRecording = true;
-        recordBtn.textContent = "🛑";
-        recordBtn.classList.add('recording');
-        statusText.textContent = "শুনছি... ইংরেজিতে কথা বলা শেষ করে বাটনে আবার চাপুন।";
-      } catch (err) {
-        alert("মাইক্রোফোন অ্যাক্সেস পাওয়া যায়নি!");
-        console.error(err);
-      }
-    } else {
-      mediaRecorder.stop();
-      isRecording = false;
-      recordBtn.textContent = "⏳";
-      recordBtn.classList.remove('recording');
-      statusText.textContent = "AI শিক্ষক চিন্তা করছেন...";
-    }
-  });
-
-  async function sendAudioToAI(base64Audio) {
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ audio_base64: base64Audio })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        appendMessage(data.user_said, 'user');
-        appendMessage(data.ai_response, 'ai');
-        speakText(data.ai_response);
-      } else {
-        alert("সার্ভার থেকে সঠিক রেসপন্স আসেনি।");
-      }
-    } catch (error) {
-      console.error(error);
-      alert("সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।");
-    } finally {
-      recordBtn.textContent = "🎤";
-      statusText.textContent = "আবার কথা বলতে ক্লিক করুন...";
-    }
-  }
-
-  function appendMessage(text, sender) {
-    const msgDiv = document.createElement('div');
-    msgDiv.classList.add('message', sender);
-    msgDiv.textContent = text;
-    chatContainer.appendChild(msgDiv);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-  }
-
-  function speakText(fullText) {
-    const englishParts = fullText.match(/\[(.*?)\]/);
-    const conversationPart = fullText.includes(']') ? fullText.split(']').pop() : fullText;
-
-    let voiceText = "";
-    if (englishParts) {
-      voiceText += `The correct sentence is: ${englishParts[1]}. `;
-    }
-    voiceText += conversationPart;
-
-    const msg = new SpeechSynthesisUtterance(voiceText);
-    msg.lang = 'en-US';
-    window.speechSynthesis.speak(msg);
-  }
-</script>
+        function appendMessage(text, type) {
+            const div = document.createElement('div');
+            div.className = `message ${type}`;
+            div.innerText = text;
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    </script>
 </body>
   </html>
+  
